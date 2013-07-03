@@ -1,0 +1,12 @@
+[submodule "NRefactory"]
+	path = NRefactory
+	url = https://github.com/icsharpcode/NRefactory
+[submodule "markdowndeep"]
+	path = markdowndeep
+	url = https://github.com/tritao/markdowndeep.git
+[submodule "colorcode"]
+	path = colorcode
+	url = https://git01.codeplex.com/colorcode
+[submodule "bootstrap"]
+	path = bootstrap
+	url = https://github.com/twitter/bootstrap.git
