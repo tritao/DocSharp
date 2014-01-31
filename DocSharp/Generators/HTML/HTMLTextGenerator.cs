@@ -17,7 +17,17 @@ namespace DocSharp.Generators
         Ul,
         Li,
         A,
-        P
+        P,
+        H1,
+        H2,
+        H3,
+        H4,
+        H5,
+        H6,
+        Hr,
+        Table,
+        Td,
+        Tr
     }
 
     public class HTMLTextGenerator : TextGenerator
@@ -86,11 +96,27 @@ namespace DocSharp.Generators
             CloseTag(HTMLTag.Script);
         }
 
+        public void Javascript(string src)
+        {
+            Script(src, new { type = "text/javascript" });
+        }
+
         public void Anchor(string href, params object[] attributes)
         {
             var attrs = new object[] { new { href } }.Concat(attributes)
                 .ToArray();
             InlineTag(HTMLTag.A, attrs);
+        }
+
+        public void Heading(string text, int level = 2)
+        {
+            var heading = (int) HTMLTag.H1 + level - 1;
+            Content((HTMLTag) heading, text);
+        }
+
+        public void HorizontalRule()
+        {
+            Content(HTMLTag.Hr, "");
         }
 
         public void Div(params object[] attributes)
