@@ -1,6 +1,7 @@
 ﻿namespace DocSharp.Generators
 {
-    public interface IGenerator
+    public enum GeneratorKind
     {
+        HTML,
     }
 }
