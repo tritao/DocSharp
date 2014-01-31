@@ -23,6 +23,17 @@ namespace DocSharp
             CurrentIndent = new Stack<uint>();
         }
 
+        public void WriteRaw(string msg, params object[] args)
+        {
+            if (string.IsNullOrEmpty(msg))
+                return;
+
+            if (args.Length > 0)
+                msg = string.Format(msg, args);
+
+            sb.Append(msg);
+        }
+
         public void Write(string msg, params object[] args)
         {
             if (string.IsNullOrEmpty(msg))
