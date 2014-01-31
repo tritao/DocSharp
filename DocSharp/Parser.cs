@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DocSharp.Documents;
 using ICSharpCode.NRefactory.CSharp;
 using ICSharpCode.NRefactory.Documentation;
 using ICSharpCode.NRefactory.TypeSystem;
@@ -62,13 +63,19 @@ namespace DocSharp
 
     public class Parser
     {
-        private readonly DriverOptions options;
-        private readonly IDiagnosticConsumer diagnostics;
+        private readonly Options Options;
+        private readonly IDiagnostics Diagnostics;
 
-        public Parser(Driver driver)
+        public delegate void ParsedDelegate<T>(ParserResult<T> result);
+
+        public ParsedDelegate<SyntaxTree> OnSourceParsed = delegate { };
+        public ParsedDelegate<IUnresolvedAssembly> OnAssemblyParsed = delegate { };
+        public ParsedDelegate<IDocument> OnDocumentParsed = delegate { };
+
+        public Parser(Options options, IDiagnostics diagostics)
         {
-            options = driver.Options;
-            diagnostics = driver.Diagnostics;
+            Options = options;
+            Diagnostics = diagostics;
         }
 
         public void ParseSource(ProjectInput input, ParserResult<SyntaxTree> result)
@@ -84,8 +91,6 @@ namespace DocSharp
                 }
                 catch (Exception ex)
                 {
-                    diagnostics.EmitError(DiagnosticId.AssemblyLoadFailed,
-                        ex.ToString());
                     result.Kind = ParserResultKind.Error;
                 }
             }
@@ -112,8 +117,6 @@ namespace DocSharp
                 }
                 catch (Exception ex)
                 {
-                    diagnostics.EmitError(DiagnosticId.AssemblyLoadFailed,
-                        ex.ToString());
                     result.Kind = ParserResultKind.Error;
                 }
             }
@@ -146,10 +149,48 @@ namespace DocSharp
             }
         }
 
-        public delegate void ParsedDelegate<T>(ParserResult<T> result);
+        ParserResult<T> ParseInput<T>(ProjectInput input, ParserHandler<T> handler)
+        {
+            var result = new ParserResult<T>
+            {
+                Input = input
+            };
 
-        public ParsedDelegate<SyntaxTree> OnSourceParsed = delegate {};
-        public ParsedDelegate<IUnresolvedAssembly> OnAssemblyParsed = delegate {};
-        public ParsedDelegate<IDocument> OnDocumentParsed = delegate {};
+            if (!File.Exists(input.FullPath))
+            {
+                result.Kind = ParserResultKind.FileNotFound;
+                return result;
+            }
+
+            input.Stream = File.OpenRead(input.FullPath);
+
+            handler(input, result);
+            return result;
+        }
+
+        public bool Parse(Project project)
+        {
+            var hasErrors = false;
+
+            foreach (var input in project.SourceInputs)
+            {
+                var result = ParseInput<SyntaxTree>(input, ParseSource);
+                hasErrors |= result.HasErrors;
+            }
+
+            foreach (var input in project.AssemblyInputs)
+            {
+                var result = ParseInput<IUnresolvedAssembly>(input, ParseAssembly);
+                hasErrors |= result.HasErrors;
+            }
+
+            foreach (var input in project.DocumentInputs)
+            {
+                var result = ParseInput<IDocument>(input, ParseDocument);
+                hasErrors |= result.HasErrors;
+            }
+
+            return !hasErrors;
+        }
     }
 }
