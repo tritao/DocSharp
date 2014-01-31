@@ -18,7 +18,7 @@ gendir = path.join(builddir, "gen");
 solution "DocSharp"
 
   configurations { "Debug", "Release" }
-  platforms { "x32" }
+  platforms { "x32", "x64" }
   flags { "Unicode", "Symbols" }
   
   location (builddir)
@@ -41,13 +41,15 @@ solution "DocSharp"
     kind "SharedLib"
     language "C#"
 
-    files   { "**.cs" }
+    location "../DocSharp"
+    files   { "../DocSharp/**.cs" }
   
     links
     {
       "System",
       "System.Core",
       "ICSharpCode.NRefactory",
+      "ICSharpCode.NRefactory.Cecil",
       "ICSharpCode.NRefactory.CSharp",
       "ICSharpCode.NRefactory.Xml",
       "Mono.Cecil",
@@ -62,6 +64,12 @@ solution "DocSharp"
       uuid "3B2A5653-EC97-4001-BB9B-D90F1AF2C371"
       language "C#"
       kind "SharedLib"
+
+    external "ICSharpCode.NRefactory.Cecil"
+      location ("../NRefactory/ICSharpCode.NRefactory.Cecil")
+      uuid "2B8F4F83-C2B3-4E84-A27B-8DEE1BE0E006"
+      language "C#"
+      kind "SharedLib"      
 
     external "ICSharpCode.NRefactory.CSharp"
       location ("../NRefactory/ICSharpCode.NRefactory.CSharp")
