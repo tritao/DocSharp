@@ -1,19 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace DocSharp
 {
-    public enum DiagnosticId
-    {
-        AssemblyLoadFailed
-    }
-
+    /// <summary>
+    /// Represents the kind of the diagnostic.
+    /// </summary>
     public enum DiagnosticKind
     {
+        Debug,
         Message,
         Warning,
         Error
     }
 
+    /// <summary>
+    /// Keeps information related to a single diagnostic.
+    /// </summary>
     public struct DiagnosticInfo
     {
         public DiagnosticKind Kind;
@@ -23,27 +28,41 @@ namespace DocSharp
         public int Column;
     }
 
-    public interface IDiagnosticConsumer
+    public interface IDiagnostics
     {
         void Emit(DiagnosticInfo info);
+        void PushIndent(int level);
+        void PopIndent();
     }
 
     public static class DiagnosticExtensions
     {
-        public static void EmitMessage(this IDiagnosticConsumer consumer,
-            DiagnosticId id, string msg, params object[] args)
+        public static void Debug(this IDiagnostics consumer,
+            string msg, params object[] args)
         {
             var diagInfo = new DiagnosticInfo
-                {
-                    Kind = DiagnosticKind.Message,
-                    Message = string.Format(msg, args)
-                };
+            {
+                Kind = DiagnosticKind.Debug,
+                Message = string.Format(msg, args)
+            };
 
             consumer.Emit(diagInfo);
         }
 
-        public static void EmitWarning(this IDiagnosticConsumer consumer,
-            DiagnosticId id, string msg, params object[] args)
+        public static void Message(this IDiagnostics consumer,
+            string msg, params object[] args)
+        {
+            var diagInfo = new DiagnosticInfo
+            {
+                Kind = DiagnosticKind.Message,
+                Message = string.Format(msg, args)
+            };
+
+            consumer.Emit(diagInfo);
+        }
+
+        public static void Warning(this IDiagnostics consumer,
+            string msg, params object[] args)
         {
             var diagInfo = new DiagnosticInfo
             {
@@ -54,8 +73,8 @@ namespace DocSharp
             consumer.Emit(diagInfo);
         }
 
-        public static void EmitError(this IDiagnosticConsumer consumer,
-            DiagnosticId id, string msg, params object[] args)
+        public static void Error(this IDiagnostics consumer,
+            string msg, params object[] args)
         {
             var diagInfo = new DiagnosticInfo
             {
@@ -67,11 +86,36 @@ namespace DocSharp
         }
     }
 
-    public class TextDiagnosticPrinter : IDiagnosticConsumer
+    public class TextDiagnosticPrinter : IDiagnostics
     {
+        public bool Verbose;
+        public Stack<int> Indents;
+
+        public TextDiagnosticPrinter()
+        {
+            Indents = new Stack<int>();
+        }
+
         public void Emit(DiagnosticInfo info)
         {
-            Console.WriteLine(info.Message);
+            if (info.Kind == DiagnosticKind.Debug && !Verbose)
+                return;
+
+            var currentIndent = Indents.Sum();
+            var message = new string(' ', currentIndent) + info.Message;
+
+            Console.WriteLine(message);
+            Debug.WriteLine(message);
+        }
+
+        public void PushIndent(int level)
+        {
+            Indents.Push(level);
+        }
+
+        public void PopIndent()
+        {
+            Indents.Pop();
         }
     }
 }
