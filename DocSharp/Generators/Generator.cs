@@ -2,6 +2,6 @@
 {
     public enum GeneratorKind
     {
-        HTML,
+        HTML
     }
 }

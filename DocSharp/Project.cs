@@ -100,6 +100,8 @@ namespace DocSharp
         {
             foreach (var path in SourceDirs)
             {
+                if (!Directory.Exists(path)) continue;
+
                 var files = Directory.EnumerateFiles(path, "*.cs",
                                                      SearchOption.AllDirectories);
 
@@ -117,6 +119,8 @@ namespace DocSharp
 
             foreach (var path in AssemblyDirs)
             {
+                if (!Directory.Exists(path)) continue;
+
                 var files = Directory.EnumerateFiles(path, "*.dll");
 
                 foreach (var file in files)
@@ -139,6 +143,8 @@ namespace DocSharp
 
             foreach (var path in DocumentDirs)
             {
+                if (!Directory.Exists(path)) continue;
+
                 var files = Directory.EnumerateFiles(path, "*.md");
 
                 foreach (var file in files)

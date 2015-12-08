@@ -23,5 +23,12 @@ namespace DocSharp
         public GeneratorKind Generator;
         public string OutputNamespace;
         public string OutputDir;
+
+        /// <summary>
+        /// If this is turned on then the HTML templates will generate bare
+        /// output without head, body or footer sections, which is useful to
+        /// embed the generated documentation in an already-existing codebase.
+        /// </summary>
+        public bool GenerateBareHTML;
     }
 }

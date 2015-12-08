@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace DocSharp.Generators
@@ -15,6 +16,7 @@ namespace DocSharp.Generators
         Div,
         Section,
         Ul,
+        Ol,
         Li,
         A,
         P,
@@ -27,16 +29,21 @@ namespace DocSharp.Generators
         Hr,
         Table,
         Td,
-        Tr
+        Tr,
+        Span,
+        Br,
+        Th
     }
 
     public class HTMLTextGenerator : TextGenerator
     {
         public Stack<HTMLTag> Tags;
+        public string LinkHrefPrefix;
 
         public HTMLTextGenerator()
         {
             Tags = new Stack<HTMLTag>();
+            LinkHrefPrefix = string.Empty;
         }
 
         public void Doctype()
@@ -72,6 +79,20 @@ namespace DocSharp.Generators
             return attrs;
         }
 
+        public void Paragraph(string text)
+        {
+            if (text == null)
+                text = string.Empty;
+            Content(HTMLTag.P, text);
+        }
+
+        public void Paragraph(string text, params object[] args)
+        {
+            if (text == null)
+                text = string.Empty;
+            Content(HTMLTag.P, string.Format(text, args));
+        }
+
         public void Content(HTMLTag tag, string content, params object[] attributes)
         {
             Write("<{0}{1}>", tag.ToString().ToLowerInvariant(),
@@ -80,8 +101,9 @@ namespace DocSharp.Generators
             CloseTag(tag);
         }
 
-        public void Link(string href, params object[] attributes)
+        public void Link(string _href, params object[] attributes)
         {
+            var href = Path.Combine(LinkHrefPrefix, _href);
             var attrs = new object[] { new { href } }.Concat(attributes)
                 .ToArray();
             InlineTag(HTMLTag.Link, attrs);
@@ -108,6 +130,13 @@ namespace DocSharp.Generators
             InlineTag(HTMLTag.A, attrs);
         }
 
+        public void GlyphIcon(string name)
+        {
+            var classes = string.Format("glyphicon glyphicon-{0}", name);
+            InlineTag(HTMLTag.Span, new { @class = classes });
+            CloseTag(HTMLTag.Span);
+        }
+
         public void Heading(string text, int level = 2)
         {
             var heading = (int) HTMLTag.H1 + level - 1;
@@ -117,6 +146,12 @@ namespace DocSharp.Generators
         public void HorizontalRule()
         {
             Content(HTMLTag.Hr, "");
+        }
+
+        public void LineBreak()
+        {
+            Content(HTMLTag.Br, "");
+
         }
 
         public void Div(params object[] attributes)
@@ -129,16 +164,18 @@ namespace DocSharp.Generators
             TagIndent(HTMLTag.Section, attributes);
         }
 
+        #region Generic tags
+
         public void Tag(HTMLTag tag, params object[] attributes)
         {
             InlineTag(tag, attributes);
-            NewLine();
             Tags.Push(tag);
         }
 
         public void TagIndent(HTMLTag tag, params object[] attributes)
         {
             Tag(tag, attributes);
+            NewLine();
             PushIndent();
         }
 
@@ -152,6 +189,11 @@ namespace DocSharp.Generators
         {
             var tag = Tags.Pop();
             CloseTag(tag);
+        }
+
+        public void CloseInlineTag(HTMLTag tag)
+        {
+            Write("</{0}>", tag.ToString().ToLowerInvariant());
         }
 
         public void CloseTag(HTMLTag tag)
@@ -170,5 +212,7 @@ namespace DocSharp.Generators
             PopIndent();
             CloseTag(tag);
         }
+
+        #endregion
     }
 }

@@ -47,8 +47,8 @@ namespace DocSharp
             foreach (var split in splitEntries)
             {
                 var entry = split.ToLowerInvariant();
-                entry = string.Join("", entry.Where(c => char.IsLetterOrDigit(c) ||
-                    char.IsWhiteSpace(c) || c == '-'));
+                entry = string.Join("", entry.Where(c => char.IsLetterOrDigit(c)
+                    || char.IsWhiteSpace(c) || c == '-'));
                 entries.Add(entry);
             }
 
@@ -57,8 +57,7 @@ namespace DocSharp
 
         public override string ToString()
         {
-            return string.Format("{0} {1}", Block.blockType.ToString(),
-                Block.Content);
+            return string.Format("{0} {1}", Block.blockType, Block.Content);
         }
     }
 }

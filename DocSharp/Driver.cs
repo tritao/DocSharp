@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using DocSharp.Documents;
-using DocSharp.Generators;
 using DocSharp.Generators.HTML;
 using DocSharp.Templates;
 using ICSharpCode.NRefactory.CSharp;
@@ -21,6 +20,8 @@ namespace DocSharp
         public ICompilation Compilation { get; private set; }
 
         public ProjectOutput Output { get; private set; }
+
+        public HTMLPage Root;
 
         public Driver(Options options, IDiagnostics diagnostics = null)
         {
@@ -58,6 +59,78 @@ namespace DocSharp
             PrepareCSharpSourceFiles();
         }
 
+        public void Generate()
+        {
+            if (!Directory.Exists(Options.OutputDir))
+                Directory.CreateDirectory(Options.OutputDir);
+
+            Output = new ProjectOutput();
+
+            // Use the Bootstrap-based template.
+            var template = new BootstrapTemplate(Options);
+            template.Process();
+
+            var csharpGen = new HTMLCSharpGenerator(this, template);
+            Root = new HTMLIndexGenerator(this, csharpGen);
+
+            // Generate C# documentation.
+            csharpGen.Generate(Compilation);
+
+            // Generate the index page.
+            Root.Generate();
+            Output.WritePage(Root);
+
+            // Generate Markdown documentation.
+            foreach (var document in Documents)
+            {
+                var markdownGen = new HTMLMarkdownGenerator(this, template,
+                    document as MarkdownDocument);
+                markdownGen.Generate();
+                Output.WritePage(markdownGen);
+            }
+        }
+
+        public void WriteFiles()
+        {
+            foreach (var output in Output.Files)
+            {
+                var path = output.Key;
+
+                var outputPath = Path.Combine(Options.OutputDir,
+                    Path.GetDirectoryName(path));
+
+                // Make sure the target directory exists.
+                Directory.CreateDirectory(outputPath);
+
+                var fullPath = Path.Combine(outputPath, Path.GetFileName(path));
+
+                var outputStream = output.Value;
+                outputStream.Position = 0;
+
+                using (var outputFile = File.Create(fullPath))
+                    outputStream.CopyTo(outputFile);
+
+                if (Options.Verbose)
+                    Diagnostics.Message("Generated: {0}", path);
+            }
+        }
+
+        public void Run()
+        {
+            Options.Project.BuildInputs();
+
+            Diagnostics.Message("Parsing assemblies...");
+            if (!Parse())
+                return;
+
+            Diagnostics.Message("Processing assemblies...");
+            Process();
+
+            Diagnostics.Message("Generating documentation...");
+            Generate();
+            WriteFiles();
+        }
+
         void PrepareCSharpSourceFiles()
         {
             IProjectContent project = new CSharpProjectContent();
@@ -80,63 +153,6 @@ namespace DocSharp
             }
         }
 
-        public void Generate()
-        {
-            if (!Directory.Exists(Options.OutputDir))
-                Directory.CreateDirectory(Options.OutputDir);
-
-            Output = new ProjectOutput();
-
-            // Use the Bootstrap-based template for now.
-            var template = new BootstrapTemplate();
-            template.Process(Options);
-
-            // Generate C# documentation.
-            var csharpGen = new HTMLCSharpGenerator(this, template);
-            csharpGen.GenerateReference(Compilation);
-
-            // Generate Markdown documentation.
-            var markdownGen = new HTMLMarkdownGenerator(this, template);
-            foreach (var document in Documents)
-                markdownGen.GenerateDocument(document);
-
-            foreach (var output in Output.Files)
-            {
-                var path = output.Key;
-
-                var outputPath = Path.Combine(Options.OutputDir,
-                    Path.GetDirectoryName(path));
-
-                // Make sure the target directory exists.
-                Directory.CreateDirectory(outputPath);
-
-                var fullPath = Path.Combine(outputPath, Path.GetFileName(path));
-
-                var outputStream = output.Value;
-                outputStream.Position = 0;
-
-                using (var outputFile = File.Create(fullPath))
-                    outputStream.CopyTo(outputFile);
-
-                Diagnostics.Message("Generated: {0}", path);
-            }
-        }
-
-        public void Run()
-        {
-            Options.Project.BuildInputs();
-
-            Diagnostics.Message("Parsing assemblies...");
-            if (!Parse())
-                return;
-
-            Diagnostics.Message("Processing assemblies...");
-            Process();
-
-            Diagnostics.Message("Generating documentation...");
-            Generate();
-        }
-
         void HandleParserResult<T>(ParserResult<T> result)
         {
             var file = result.Input.FullPath;
@@ -146,17 +162,20 @@ namespace DocSharp
                 file = file.TrimStart('\\');
             }
 
-            switch (result.Kind)
+            if (Options.Verbose)
             {
-                case ParserResultKind.Success:
-                    Diagnostics.Message("Parsed '{0}'", file);
-                    break;
-                case ParserResultKind.Error:
-                    Diagnostics.Message("Error parsing '{0}'", file);
-                    break;
-                case ParserResultKind.FileNotFound:
-                    Diagnostics.Message("File '{0}' was not found", file);
-                    break;
+                switch (result.Kind)
+                {
+                    case ParserResultKind.Success:
+                        Diagnostics.Message("Parsed '{0}'", file);
+                        break;
+                    case ParserResultKind.Error:
+                        Diagnostics.Message("Error parsing '{0}'", file);
+                        break;
+                    case ParserResultKind.FileNotFound:
+                        Diagnostics.Message("File '{0}' was not found", file);
+                        break;
+                }
             }
 
             foreach (var diag in result.Diagnostics)

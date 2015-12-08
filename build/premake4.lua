@@ -2,18 +2,7 @@
 -- It defines the common build settings that all the projects share
 -- and calls the build scripts of all the sub-projects.
 
-action = _ACTION or ""
-
-depsdir = path.getabsolute("../deps");
-srcdir = path.getabsolute("../src");
-incdir = path.getabsolute("../include");
-bindir = path.getabsolute("../bin");
-examplesdir = path.getabsolute("../examples");
-testsdir = path.getabsolute("../tests");
-
-builddir = path.getabsolute("./" .. action);
-libdir = path.join(builddir, "lib");
-gendir = path.join(builddir, "gen");
+dofile "Helpers.lua"
 
 solution "DocSharp"
 
@@ -38,6 +27,8 @@ solution "DocSharp"
   configuration {}
 
   project "DocSharp"
+    SetupManagedProject()
+
     kind "SharedLib"
     language "C#"
 
@@ -103,10 +94,5 @@ solution "DocSharp"
 
   group "Examples"
 
-    project "CppSharp"
-      kind "ConsoleApp"
-      language "C#"
-
-      files   { examplesdir .. "/CppSharp/**.cs" }
-  
-      links { "DocSharp" }
+    print("Searching for example projects...")
+    IncludeDir(examplesdir)

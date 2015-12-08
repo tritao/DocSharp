@@ -6,53 +6,100 @@ namespace DocSharp.Templates
     /// <summary>
     /// Implements a Bootstrap-based HTML template.
     /// </summary>
-    public class BootstrapTemplate : ITemplate
+    public class BootstrapTemplate : IHTMLTemplate
     {
-        public void HTMLHead(HTMLTextGenerator gen, string title)
+        public HTMLTextGenerator Gen { get; set; }
+        public Options Options { get; private set; }
+
+        public BootstrapTemplate(Options options)
         {
-            gen.Doctype();
-
-            gen.Tag(HTMLTag.HTML, new { lang = "en" });
-
-            gen.TagIndent(HTMLTag.Head);
-
-            // CSS assets
-            gen.Link("css/bootstrap.css",
-                     new { rel = "stylesheet", media = "screen" });
-            gen.Link("css/docs.css",
-                new { rel = "stylesheet", media = "screen" });
-            gen.Link("css/syntax.css",
-                new { rel = "stylesheet", media = "screen" });
-            gen.Link("sunlight/themes/sunlight.default.css",
-                new { rel = "stylesheet", media = "screen" });
-
-            // JS assets
-            gen.Javascript("js/jquery.js");
-            gen.Javascript("js/bootstrap.js");
-            gen.Javascript("sunlight/sunlight-min.js");
-            gen.Javascript("sunlight/plugins/sunlight-plugin.linenumbers.js");
-            gen.Javascript("sunlight/lang/sunlight.csharp-min.js");
-            gen.Javascript("sunlight/jquery.sunlight.js");
-
-            gen.TagIndent(HTMLTag.Script);
-            gen.WriteLine("$(document).ready( function($) {");
-            gen.WriteLineIndent("$('pre').sunlight({ lineNumbers: true })");
-            gen.WriteLine("})");
-            gen.CloseTagIndent();
-
-            gen.Content(HTMLTag.Title, title);
-            gen.CloseTagIndent();
+            Options = options;
         }
 
-        public void HTMLFooter(HTMLTextGenerator generator)
+        public void HTMLHeadBegin(string title)
         {
+            if (Options.GenerateBareHTML)
+                return;
+
+            Gen.Doctype();
+            Gen.Tag(HTMLTag.HTML, new { lang = "en" });
+
+            Gen.TagIndent(HTMLTag.Head);
+
+            // CSS assets
+            var classes = new {rel = "stylesheet", media = "screen"};
+            Gen.Link("css/bootstrap.css", classes);
+            Gen.Link("css/docs.css", classes);
+            Gen.Link("css/syntax.css", classes);
+            Gen.Link("sunlight/themes/sunlight.default.css", classes);
+
+            // JS assets
+            Gen.Javascript("js/jquery.js");
+            Gen.Javascript("js/bootstrap.js");
+            Gen.Javascript("sunlight/sunlight-min.js");
+            Gen.Javascript("sunlight/plugins/sunlight-plugin.linenumbers.js");
+            Gen.Javascript("sunlight/lang/sunlight.csharp-min.js");
+            Gen.Javascript("sunlight/jquery.sunlight.js");
+
+            Gen.TagIndent(HTMLTag.Script);
+            Gen.WriteLine("$(document).ready( function($) {");
+            Gen.WriteLineIndent("$('pre').sunlight({ lineNumbers: true })");
+            Gen.WriteLine("})");
+            Gen.CloseTagIndent();
+
+            Gen.Content(HTMLTag.Title, title);
+            Gen.CloseTagIndent();
+        }
+
+        public void HTMLHeadEnd()
+        {
+            if (Options.GenerateBareHTML)
+                return;
+
+            Gen.CloseTag();
+        }
+
+        public void HTMLBodyBegin()
+        {
+            if (Options.GenerateBareHTML)
+                return;
+
+            Gen.TagIndent(HTMLTag.Body, new
+            {
+                @class = "docs",
+                data_spy = "scroll",
+                data_target = "nav-sidebar"
+            });
+        }
+
+        public void HTMLBodyEnd()
+        {
+            if (Options.GenerateBareHTML)
+                return;
+
+            Gen.CloseTagIndent();
+        }
+
+        public void HTMLFooterBegin()
+        {
+            if (Options.GenerateBareHTML)
+                return;
+
             throw new System.NotImplementedException();
         }
 
-        public void Process(Options options)
+        public void HTMLFooterEnd()
+        {
+            if (Options.GenerateBareHTML)
+                return;
+
+            throw new System.NotImplementedException();
+        }
+
+        public void Process()
         {
             if (Directory.Exists("bootstrap"))
-                Helpers.CopyDirectory("bootstrap", options.OutputDir);
+                Helpers.CopyDirectory("bootstrap", Options.OutputDir);
         }
     }
 }

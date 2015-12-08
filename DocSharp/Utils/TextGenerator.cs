@@ -23,6 +23,11 @@ namespace DocSharp
             CurrentIndent = new Stack<uint>();
         }
 
+        public void Clear()
+        {
+            sb.Clear();
+        }
+
         public void WriteRaw(string msg, params object[] args)
         {
             if (string.IsNullOrEmpty(msg))

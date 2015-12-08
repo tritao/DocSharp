@@ -4,6 +4,15 @@ using ICSharpCode.NRefactory.TypeSystem;
 
 namespace DocSharp.Generators
 {
+    /// <summary>
+    /// This class drives the generation of HTML for the different
+    /// supported inputs.
+    /// </summary>
+    public class HTMLGenerator
+    {
+        
+    }
+
     public class HTMLEntityReference : HTMLTextGenerator
     {
         public EntityDeclaration Declaration;
@@ -34,10 +43,12 @@ namespace DocSharp.Generators
 
         public override IType VisitTypeDefinition(ITypeDefinition type)
         {
-            var doc = new HTMLEntityReference(type);
-            Entities.Add(doc);
+            //var doc = new HTMLEntityReference(type);
+            //Entities.Add(doc);
 
             return type.VisitChildren(this);
         }
     }
+
+
 }

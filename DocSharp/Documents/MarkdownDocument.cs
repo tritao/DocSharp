@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using MarkdownDeep;
 
 namespace DocSharp.Documents
@@ -11,6 +12,14 @@ namespace DocSharp.Documents
         public MarkdownDocumentSection Index { get; private set; }
         public ProjectInput Input { get; set; }
         public Markdown Markdown;
+
+        public string Title
+        {
+            get
+            {
+                return Path.GetFileNameWithoutExtension(Input.FullPath);
+            }
+        }
 
         public MarkdownDocument()
         {
@@ -34,7 +43,8 @@ namespace DocSharp.Documents
             return index;
         }
 
-        private static int BuildBlock(Block block, Stack<MarkdownDocumentSection> stack, int currentLevel)
+        private static int BuildBlock(Block block, Stack<MarkdownDocumentSection> stack,
+            int currentLevel)
         {
             if (!block.IsSectionHeader)
                 return currentLevel;
@@ -52,7 +62,7 @@ namespace DocSharp.Documents
             {
                 stack.Pop();
             }
-                // Outer-level section.
+            // Outer-level section.
             else if (newLevel < 0)
             {
                 while (currentLevel >= level)

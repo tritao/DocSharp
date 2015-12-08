@@ -23,13 +23,13 @@ namespace DocSharp
             return builder.ToString();
         }
 
-        public static IEnumerable<string> SplitAndKeep(this string s, string seperator)
+        public static IEnumerable<string> SplitAndKeep(this string s, string separator)
         {
-            string[] obj = s.Split(new string[] { seperator }, StringSplitOptions.None);
+            string[] obj = s.Split(new string[] { separator }, StringSplitOptions.None);
 
             for (int i = 0; i < obj.Length; i++)
             {
-                string result = i == obj.Length - 1 ? obj[i] : obj[i] + seperator;
+                string result = i == obj.Length - 1 ? obj[i] : obj[i] + separator;
                 yield return result;
             }
         }
