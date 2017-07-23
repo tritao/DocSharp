@@ -1,5 +1,5 @@
 [submodule "NRefactory"]
-	path = NRefactory
+	path = external/NRefactory
 	url = https://github.com/icsharpcode/NRefactory
 [submodule "markdowndeep"]
 	path = markdowndeep
