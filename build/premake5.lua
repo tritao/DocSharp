@@ -2,32 +2,56 @@
 -- It defines the common build settings that all the projects share
 -- and calls the build scripts of all the sub-projects.
 
-dofile "Helpers.lua"
+-- This module checks for the all the project dependencies.
+
+examplesdir = path.getabsolute("../examples");
+
+function managed_project(name)
+  local proj = project(name)
+
+  filter { "action:vs*" }
+    location "."
+
+  filter {}
+
+  return proj
+end
+
+function include_dir(dir)
+  local deps = os.matchdirs(dir .. "/*")
+  
+  for i,dep in ipairs(deps) do
+    local fp = path.join(dep, "premake4.lua")
+    fp = path.join(os.getcwd(), fp)
+    
+    if os.isfile(fp) then
+      print(string.format(" including %s", dep))
+      include(dep)
+    end
+  end
+end
 
 solution "DocSharp"
 
   configurations { "Debug", "Release" }
-  platforms { "x32", "x64" }
-  flags { "Unicode", "Symbols" }
-  
-  location (builddir)
-  objdir (path.join(builddir, "obj"))
-  targetdir (libdir)
-  libdirs { libdir }
-  debugdir (bindir)
+
+  characterset "Unicode"
+  symbols "On"
+
+  local action = _OPTIONS["outdir"] or _ACTION
+  location (".")
+
+  objdir (path.join("./", action, "obj"))
+  targetdir (path.join("./", action, "lib", "%{cfg.buildcfg}"))
 
   startproject "DocSharp"
   
-  configuration "Release"
-    flags { "Optimize" }
+  filter { "configurations:Release" }
+    optimize "On"
 
-  configuration "vs2012"
-    framework "4.5"
+  filter {}
 
-  configuration {}
-
-  project "DocSharp"
-    SetupManagedProject()
+  managed_project("DocSharp")
 
     kind "SharedLib"
     language "C#"
@@ -51,31 +75,31 @@ solution "DocSharp"
   group "Dependencies"
 
     external "ICSharpCode.NRefactory"
-      location ("../NRefactory/ICSharpCode.NRefactory")
+      location ("../external/NRefactory/ICSharpCode.NRefactory")
       uuid "3B2A5653-EC97-4001-BB9B-D90F1AF2C371"
       language "C#"
       kind "SharedLib"
 
     external "ICSharpCode.NRefactory.Cecil"
-      location ("../NRefactory/ICSharpCode.NRefactory.Cecil")
+      location ("../external/NRefactory/ICSharpCode.NRefactory.Cecil")
       uuid "2B8F4F83-C2B3-4E84-A27B-8DEE1BE0E006"
       language "C#"
       kind "SharedLib"      
 
     external "ICSharpCode.NRefactory.CSharp"
-      location ("../NRefactory/ICSharpCode.NRefactory.CSharp")
+      location ("../external/NRefactory/ICSharpCode.NRefactory.CSharp")
       uuid "53DCA265-3C3C-42F9-B647-F72BA678122B"
       language "C#"
       kind "SharedLib"
 
     external "ICSharpCode.NRefactory.Xml"
-      location ("../NRefactory/ICSharpCode.NRefactory.Xml")
+      location ("../external/NRefactory/ICSharpCode.NRefactory.Xml")
       uuid "DC393B66-92ED-4CAD-AB25-CFEF23F3D7C6"
       language "C#"
       kind "SharedLib"
 
     external "Mono.Cecil"
-      location ("../cecil")
+      location ("../external/cecil")
       uuid "D68133BD-1E63-496E-9EDE-4FBDBF77B486"
       language "C#"
       kind "SharedLib"
@@ -95,4 +119,4 @@ solution "DocSharp"
   group "Examples"
 
     print("Searching for example projects...")
-    IncludeDir(examplesdir)
+    include_dir(examplesdir)

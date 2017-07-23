@@ -1,6 +1,4 @@
-project "CppSharp"
-
-  SetupManagedProject()
+managed_project "CppSharp"
 
   kind "ConsoleApp"
   language "C#"

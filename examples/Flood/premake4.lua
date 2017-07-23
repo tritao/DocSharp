@@ -1,6 +1,4 @@
-project "Flood"
-
-  SetupManagedProject()
+managed_project "Flood"
 
   kind "ConsoleApp"
   language "C#"
