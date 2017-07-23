@@ -139,7 +139,7 @@ namespace DocSharp
                     Input = input
                 };
 
-                document.Markdown.Parse(text);
+                //document.Markdown.Parse(text);
 
                 result.Output = document;
             }

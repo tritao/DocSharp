@@ -96,8 +96,8 @@ namespace DocSharp.Generators.HTML
                 if (block.blockType != BlockType.codeblock)
                     continue;
 
-                if (block.codeBlockLang.Trim() != "csharp")
-                    continue;
+                //if (block.codeBlockLang.Trim() != "csharp")
+                //    continue;
 
                 //var sourceCode = block.Content;
                 //var buffer = new StringBuilder(sourceCode.Length * 2);
@@ -115,21 +115,21 @@ namespace DocSharp.Generators.HTML
 
             foreach (var block in markdown.Markdown.Blocks)
             {
-                if (block.IsSectionHeader)
+                //if (block.IsSectionHeader)
                 {
                     var section = new MarkdownDocumentSection(block);
                     Section((new { id = section.Shortcut }));
                 }
 
                 var sb = new StringBuilder();
-                block.Render(markdown.Markdown, sb);
+                //block.Render(markdown.Markdown, sb);
 
                 if (block.blockType == BlockType.codeblock)
                     WriteRaw(sb.ToString());
                 else
                     Write(sb.ToString());
 
-                if (block.IsSectionHeader)
+                //if (block.IsSectionHeader)
                 {
                     if (block.blockType == BlockType.h1)
                     {

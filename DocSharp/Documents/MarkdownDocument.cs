@@ -46,8 +46,8 @@ namespace DocSharp.Documents
         private static int BuildBlock(Block block, Stack<MarkdownDocumentSection> stack,
             int currentLevel)
         {
-            if (!block.IsSectionHeader)
-                return currentLevel;
+            //if (!block.IsSectionHeader)
+            //    return currentLevel;
 
             var section = new MarkdownDocumentSection(block)
             {
